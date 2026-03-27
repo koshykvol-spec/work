@@ -593,12 +593,10 @@
 <script>
 // =============================================
 // НАЛАШТУВАННЯ ХМАРНОГО СХОВИЩА (JSONBin.io)
-// 1. Зареєструйтесь на https://jsonbin.io
-// 2. Отримайте Master Key у профілі
-// 3. Вставте його нижче
 // =============================================
 const JSONBIN_MASTER_KEY = '$2a$10$gDK/9iGL81uYz7ojy1OgcuaExN9iPyogQzxhVb3N2N4w644cEPf8C';
-const JSONBIN_BIN_ID_KEY  = 'zarplt_bin_id'; // ключ у localStorage для зберігання ID бінки
+const JSONBIN_BIN_ID     = '69c642bfc3097a1dd56613cd'; // фіксований — однаковий на всіх пристроях
+const JSONBIN_BIN_ID_KEY = 'zarplt_bin_id';
 // =============================================
 
 const RATES = [50, 100, 150, 200, 250];
@@ -678,7 +676,8 @@ const SEED = {
 let currentKey = '03-2026';
 let data = {};
 let _saveTimer = null;
-let _binId = localStorage.getItem(JSONBIN_BIN_ID_KEY) || null;
+// Bin ID: спочатку константа з коду, потім localStorage
+let _binId = JSONBIN_BIN_ID || localStorage.getItem(JSONBIN_BIN_ID_KEY) || null;
 let _saving = false;
 
 // --- Статус збереження ---
@@ -704,7 +703,6 @@ async function initData() {
   setStatus('⏳ Завантаження...', 'var(--muted)');
 
   if (!_binId) {
-    // Перша ініціалізація — створити нову бінку
     fillDefaults();
     await createBin();
     return;
@@ -723,7 +721,6 @@ async function initData() {
   } catch (e) {
     console.error('Помилка завантаження:', e);
     setStatus('⚠ Не вдалось завантажити — офлайн-режим', 'var(--red)');
-    // Fallback до localStorage
     const saved = localStorage.getItem('zarplt');
     if (saved) { try { data = JSON.parse(saved); } catch(_) {} }
     fillDefaults();
@@ -749,12 +746,20 @@ async function createBin() {
     if (!resp.ok) {
       console.error('createBin error:', resp.status, JSON.stringify(json));
       setStatus(`⚠ Помилка ${resp.status}: ${json.message || JSON.stringify(json)}`, 'var(--red)');
+      render();
       return;
     }
     _binId = json.metadata.id;
     localStorage.setItem(JSONBIN_BIN_ID_KEY, _binId);
+
+    // Показати BIN ID щоб вшити у файл
+    const notice = document.getElementById('binIdNotice');
+    if (notice) {
+      notice.style.display = 'block';
+      document.getElementById('binIdValue').textContent = _binId;
+    }
     setStatus('✓ Сховище створено', 'var(--accent2)');
-    setTimeout(() => setStatus(''), 2000);
+    setTimeout(() => setStatus(''), 3000);
   } catch (e) {
     console.error('Помилка створення бінки:', e);
     setStatus(`⚠ Помилка: ${e.message}`, 'var(--red)');
