@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Зарплатня — Руслан ЦАЛЬ-ЦАЛЬКО</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #16181c;
+    --surface2: #1e2128;
+    --border: #2a2d35;
+    --accent: #f0c040;
+    --accent2: #3ecf8e;
+    --red: #e05252;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  :root.light {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface2: #eaecf0;
+    --border: #d0d4dc;
+    --accent: #b8860b;
+    --accent2: #1a7f56;
+    --red: #c0392b;
+    --text: #1a1c22;
+    --muted: #7a8394;
+  }
+
+  .theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .header-left p {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .month-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .month-selector select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .btn-add-month {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.15s;
+  }
+
+  .btn-add-month:hover { opacity: 0.85; }
+
+  /* SUMMARY CARDS */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .card-value {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .card-value.green { color: var(--accent2); }
+  .card-value.yellow { color: var(--accent); }
+  .card-value.red { color: var(--red); }
+
+  .card-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 3px;
+    font-family: var(--mono);
+  }
+
+  /* SPECIAL ENTRIES */
+  .special-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .special-section h3 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .special-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .special-row label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    min-width: 160px;
+  }
+
+  .special-row input[type="number"],
+  .special-row input[type="text"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    width: 130px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .special-row input:focus { border-color: var(--accent); }
+
+  .btn-add-special {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .btn-add-special:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* DEBT / PAYOUT */
+  .payout-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .payout-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .payout-card label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .payout-card input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 6px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .payout-card input:focus { border-color: var(--accent); }
+
+  .card.na-ruky-card-summary,
+  .payout-card.na-ruky-card {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent2) 15%, var(--surface)), color-mix(in srgb, var(--accent2) 8%, var(--surface)));
+    border-color: var(--accent2);
+  }
+
+  .na-ruky-value {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-top: 4px;
+  }
+
+  /* TABLE */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 1.9rem;
+    min-width: 780px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+  }
+
+  thead th {
+    padding: 10px 10px;
+    text-align: center;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  thead th.rate {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  thead th:first-child { text-align: left; padding-left: 14px; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody tr.weekend { opacity: 0.5; }
+
+  tbody td {
+    padding: 4px 6px;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  tbody td:first-child {
+    text-align: left;
+    padding-left: 14px;
+    color: var(--muted);
+    font-size: 1.1rem;
+    white-space: nowrap;
+    width: 100px;
+  }
+
+  tbody td.day-name {
+    font-size: 1.1rem;
+    color: var(--muted);
+    width: 28px;
+  }
+
+  tbody td.total-cell {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 2rem;
+  }
+
+  tbody td.total-cell.zero { color: var(--muted); font-weight: 400; }
+
+  input.qty {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1.7rem;
+    text-align: center;
+    width: 80px;
+    padding: 4px 3px;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.15s;
+  }
+
+  input.qty:hover { border-color: var(--border); background: transparent; }
+  input.qty:focus { border-color: var(--accent); background: var(--surface2); }
+
+  input.comment {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    width: 220px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.15s;
+  }
+
+  input.comment:hover { border-color: var(--border); background: transparent; }
+  input.comment:focus { border-color: var(--accent); background: var(--surface2); color: var(--text); }
+
+  .suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    min-width: 220px;
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .suggestion-item {
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    color: var(--text);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: var(--surface); color: var(--accent); }
+
+  input.comment:hover { border-color: var(--border); }
+  input.comment:focus { border-color: var(--accent); background: var(--surface2); color: var(--text); }
+
+  /* FOOTER ROW */
+  tfoot tr {
+    background: var(--surface2);
+    border-top: 2px solid var(--border);
+  }
+
+  tfoot td {
+    padding: 10px 6px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 2rem;
+  }
+
+  tfoot td:first-child {
+    text-align: left;
+    padding-left: 14px;
+    color: var(--muted);
+    font-size: 1.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  tfoot td.grand { color: var(--accent); font-size: 2.2rem; }
+
+  /* PRINT / SAVE */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    border: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.82; }
+
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+
+  @media print {
+    body { background: white; color: black; padding: 10px; }
+    .actions, .btn-add-month, .btn-add-special { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Руслан ЦАЛЬ-ЦАЛЬКО</h1>
+    <p id="subtitle">Облік зарплати</p>
+  </div>
+  <div class="month-selector">
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">☀️</button>
+    <select id="monthSelect" onchange="switchMonth()">
+      <option value="10-2025">Жовтень 2025</option>
+      <option value="11-2025">Листопад 2025</option>
+      <option value="12-2025">Грудень 2025</option>
+      <option value="02-2026">Лютий 2026</option>
+      <option value="03-2026" selected>Березень 2026</option>
+    </select>
+    <button class="btn-add-month" onclick="addMonth()">+ Місяць</button>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary">
+  <div class="card">
+    <div class="card-label">За місяць</div>
+    <div class="card-value yellow" id="totalMonth">0 ₴</div>
+    <div class="card-sub" id="totalUnits">0 одиниць</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Додатково</div>
+    <div class="card-value" id="totalExtras">0 ₴</div>
+    <div class="card-sub">ноути / бонуси</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Борг</div>
+    <div class="card-value red" id="debtDisplay">0 ₴</div>
+  </div>
+  <div class="card na-ruky-card-summary" style="border-color: var(--accent2);">
+    <div class="card-label" style="color:var(--accent2)">НА РУКИ</div>
+    <div class="card-value green" id="naRukyDisplay">0 ₴</div>
+  </div>
+</div>
+
+<!-- Special entries (ноути) -->
+<div class="special-section">
+  <h3>Додаткові нарахування</h3>
+  <div id="specialEntries"></div>
+  <button class="btn-add-special" onclick="addSpecialEntry()">+ Додати рядок</button>
+</div>
+
+<!-- Debt / payout -->
+<div class="payout-row">
+  <div class="payout-card">
+    <label>Борг</label>
+    <input type="number" id="debtInput" value="0" oninput="recalc()" placeholder="0">
+  </div>
+  <div class="payout-card">
+    <label>На картку за ноутбук</label>
+    <input type="number" id="cardInput" value="0" oninput="recalc()" placeholder="0">
+  </div>
+  <div class="payout-card na-ruky-card">
+    <label style="color:var(--accent2)">НА РУКИ</label>
+    <div class="na-ruky-value" id="naRukyBig">0 ₴</div>
+  </div>
+</div>
+
+<!-- Main table -->
+<div class="table-wrapper">
+  <table id="mainTable">
+    <thead>
+      <tr>
+        <th>Дата</th>
+        <th class="day-name">День</th>
+        <th class="rate">50</th>
+        <th>Коментар</th>
+        <th class="rate">100</th>
+        <th>Коментар</th>
+        <th class="rate">150</th>
+        <th>Коментар</th>
+        <th class="rate">200</th>
+        <th>Коментар</th>
+        <th class="rate">250</th>
+        <th>Коментар</th>
+        <th class="rate">Разом</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot>
+      <tr>
+        <td>Всього</td>
+        <td></td>
+        <td id="sum50">0</td><td></td>
+        <td id="sum100">0</td><td></td>
+        <td id="sum150">0</td><td></td>
+        <td id="sum200">0</td><td></td>
+        <td id="sum250">0</td><td></td>
+        <td class="grand" id="grandTotal">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="actions">
+  <button class="btn btn-primary" onclick="window.print()">🖨 Друк</button>
+  <button class="btn btn-secondary" onclick="exportCSV()">↓ CSV</button>
+  <button class="btn btn-secondary" onclick="saveData()">💾 Зберегти</button>
+  <button class="btn btn-danger" onclick="clearMonth()">Очистити місяць</button>
+</div>
+
+<script>
+const RATES = [50, 100, 150, 200, 250];
+const DAY_NAMES = ['нд','пн','вт','ср','чт','пт','сб'];
+
+const MONTHS = {
+  '10-2025': { name: 'Жовтень 2025', year: 2025, month: 10 },
+  '11-2025': { name: 'Листопад 2025', year: 2025, month: 11 },
+  '12-2025': { name: 'Грудень 2025', year: 2025, month: 12 },
+  '02-2026': { name: 'Лютий 2026', year: 2026, month: 2 },
+  '03-2026': { name: 'Березень 2026', year: 2026, month: 3 },
+};
+
+// Seed data from xlsx
+const SEED = {
+  '02-2026': {
+    days: {
+      1:  {50:2, c50:'hp 650 g3', 150:2, c150:'hp 840 g1', 200:2, c200:'hp 840 g1'},
+      2:  {200:2, c200:'hp 470 g1'},
+      3:  {50:8, c50:'hp 650 g1', 150:1, c150:'hp 650 g1'},
+      4:  {200:2, c200:'hp 820, 850 g1'},
+      5:  {150:1, c150:'hp 840 g1', 200:1, c200:'hp 650 g1'},
+      7:  {200:2, c200:'hp 650 g1'},
+      10: {200:1, c200:'hp 650 g1'},
+      11: {200:2, c200:'hp 650 g1'},
+      13: {200:1, c200:'hp 650 g1'},
+      16: {200:1, c200:'hp 650 g1'},
+      17: {150:1, c150:'hp 840 g2'},
+      18: {50:1, c50:'леново l460', 150:1, c150:'hp 840 g2', 200:1, c200:'hp 650 g1'},
+      19: {200:2, c200:'леново l460'},
+      20: {150:3, c150:'леново v110 17'},
+      24: {200:1, c200:'леново v340 17'},
+      25: {150:2, c150:'hp 840 g1 леново v340 17', 200:1, c200:'леново v340 17'},
+    },
+    special: [
+      {label:'ноут 9000', value:1100},
+      {label:'ноут 17400', value:1740},
+    ],
+    debt: 0, card: 0
+  },
+  '11-2025': {
+    days: {
+      4:  {200:200},
+      5:  {200:200},
+      6:  {50:1, c50:''},
+      11: {50:3},
+      12: {200:800},
+      14: {200:800},
+      15: {200:400},
+      16: {200:200},
+      18: {50:2},
+      19: {200:450},
+      20: {200:200},
+      21: {200:200},
+      22: {200:200},
+      23: {200:200},
+      25: {200:400},
+      26: {200:400},
+      27: {200:200},
+      28: {200:200},
+    },
+    special: [],
+    debt: 0, card: 0
+  },
+  '10-2025': {
+    days: {},
+    special: [],
+    debt: 0, card: 0
+  },
+  '12-2025': {
+    days: {},
+    special: [],
+    debt: 0, card: 0
+  },
+};
+
+let currentKey = '03-2026';
+let data = {}; // key -> { days: {dayNum: {50,c50,100,...}}, special:[], debt, card }
+
+function initData() {
+  const saved = localStorage.getItem('zarplt');
+  if (saved) { data = JSON.parse(saved); }
+  // Fill from seed
+  for (const k in SEED) {
+    if (!data[k]) data[k] = JSON.parse(JSON.stringify(SEED[k]));
+  }
+  // Ensure all months exist
+  for (const k in MONTHS) {
+    if (!data[k]) data[k] = { days:{}, special:[], debt:0, card:0 };
+  }
+}
+
+function saveData() {
+  localStorage.setItem('zarplt', JSON.stringify(data));
+  const btn = event.target;
+  btn.textContent = '✓ Збережено';
+  setTimeout(() => btn.textContent = '💾 Зберегти', 1500);
+}
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month, 0).getDate();
+}
+
+function switchMonth() {
+  currentKey = document.getElementById('monthSelect').value;
+  render();
+}
+
+function addMonth() {
+  const val = prompt('Введіть місяць/рік (ММ-РРРР), напр. 04-2026:');
+  if (!val || !/^\d{2}-\d{4}$/.test(val)) return;
+  if (MONTHS[val]) { alert('Такий місяць вже є'); return; }
+  const [mm, yyyy] = val.split('-');
+  const monthNames = ['','Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+  MONTHS[val] = { name: `${monthNames[+mm]} ${yyyy}`, year: +yyyy, month: +mm };
+  data[val] = { days:{}, special:[], debt:0, card:0 };
+  const sel = document.getElementById('monthSelect');
+  const opt = document.createElement('option');
+  opt.value = val; opt.textContent = MONTHS[val].name;
+  sel.appendChild(opt);
+  sel.value = val;
+  currentKey = val;
+  render();
+}
+
+function render() {
+  const m = MONTHS[currentKey];
+  document.getElementById('subtitle').textContent = m.name;
+  document.getElementById('monthSelect').value = currentKey;
+  renderTable();
+  renderSpecial();
+  recalc();
+}
+
+function renderTable() {
+  const m = MONTHS[currentKey];
+  const days = getDaysInMonth(m.year, m.month);
+  const d = data[currentKey];
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  for (let day = 1; day <= days; day++) {
+    const date = new Date(m.year, m.month - 1, day);
+    const dow = date.getDay();
+    const isWknd = dow === 0 || dow === 6;
+    const dayData = d.days[day] || {};
+    const tr = document.createElement('tr');
+    if (isWknd) tr.classList.add('weekend');
+
+    const dateStr = `${String(day).padStart(2,'0')}.${String(m.month).padStart(2,'0')}`;
+    tr.innerHTML = `<td>${dateStr}</td><td class="day-name">${DAY_NAMES[dow]}</td>`;
+
+    RATES.forEach(r => {
+      const qty = dayData[r] || '';
+      const com = dayData['c'+r] || '';
+      const listId = `dl-${day}-${r}`;
+      tr.innerHTML += `
+        <td><input class="qty" type="number" min="0" value="${qty}" data-day="${day}" data-rate="${r}" oninput="onQty(this)"></td>
+        <td style="position:relative">
+          <input class="comment" type="text" value="${com}" data-day="${day}" data-key="c${r}"
+            oninput="onComment(this)" onfocus="showSuggestions(this)" onblur="hideSuggestions(this)" autocomplete="off">
+          <div class="suggestions" id="${listId}"></div>
+        </td>`;
+    });
+
+    tr.innerHTML += `<td class="total-cell" id="row-total-${day}">0</td>`;
+    tbody.appendChild(tr);
+    updateRowTotal(day);
+  }
+}
+
+function renderSpecial() {
+  const container = document.getElementById('specialEntries');
+  container.innerHTML = '';
+  const entries = data[currentKey].special;
+  entries.forEach((e, i) => {
+    const row = document.createElement('div');
+    row.className = 'special-row';
+    row.innerHTML = `
+      <input type="text" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:200px;outline:none;" value="${e.label}" oninput="data['${currentKey}'].special[${i}].label=this.value;recalc()">
+      <input type="number" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:110px;outline:none;" value="${e.value}" oninput="data['${currentKey}'].special[${i}].value=+this.value;recalc()">
+      <button onclick="removeSpecial(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:5px;cursor:pointer;">✕</button>`;
+    container.appendChild(row);
+  });
+}
+
+function addSpecialEntry() {
+  data[currentKey].special.push({label:'', value:0});
+  renderSpecial();
+  recalc();
+}
+
+function removeSpecial(i) {
+  data[currentKey].special.splice(i,1);
+  renderSpecial();
+  recalc();
+}
+
+function onQty(el) {
+  const day = +el.dataset.day;
+  const rate = +el.dataset.rate;
+  if (!data[currentKey].days[day]) data[currentKey].days[day] = {};
+  data[currentKey].days[day][rate] = +el.value || 0;
+  updateRowTotal(day);
+  recalc();
+}
+
+function getAllComments() {
+  const set = new Set();
+  for (const k in data) {
+    const days = data[k].days || {};
+    for (const day in days) {
+      RATES.forEach(r => {
+        const v = days[day]['c'+r];
+        if (v && v.trim()) set.add(v.trim());
+      });
+    }
+  }
+  return [...set].sort();
+}
+
+function onComment(el) {
+  const day = +el.dataset.day;
+  const key = el.dataset.key;
+  if (!data[currentKey].days[day]) data[currentKey].days[day] = {};
+  data[currentKey].days[day][key] = el.value;
+  filterSuggestions(el);
+}
+
+function filterSuggestions(el) {
+  const day = +el.dataset.day;
+  const rate = el.dataset.key.replace('c','');
+  const listId = `dl-${day}-${rate}`;
+  const box = document.getElementById(listId);
+  if (!box) return;
+  const q = el.value.trim().toLowerCase();
+  const all = getAllComments();
+  const matches = q ? all.filter(c => c.toLowerCase().includes(q) && c !== el.value) : all;
+  if (!matches.length) { box.style.display = 'none'; return; }
+  box.innerHTML = matches.map(c =>
+    `<div class="suggestion-item" onmousedown="pickSuggestion(event,'${day}','c${rate}','${c.replace(/'/g,"\\'")}',this)">${c}</div>`
+  ).join('');
+  box.style.display = 'block';
+}
+
+function showSuggestions(el) {
+  filterSuggestions(el);
+}
+
+function hideSuggestions(el) {
+  const day = +el.dataset.day;
+  const rate = el.dataset.key.replace('c','');
+  const listId = `dl-${day}-${rate}`;
+  const box = document.getElementById(listId);
+  if (box) setTimeout(() => box.style.display = 'none', 150);
+}
+
+function pickSuggestion(e, day, key, value, itemEl) {
+  e.preventDefault();
+  if (!data[currentKey].days[day]) data[currentKey].days[day] = {};
+  data[currentKey].days[day][key] = value;
+  // Update input
+  const rate = key.replace('c','');
+  const listId = `dl-${day}-${rate}`;
+  const box = document.getElementById(listId);
+  if (box) {
+    const input = box.previousElementSibling;
+    if (input) input.value = value;
+    box.style.display = 'none';
+  }
+}
+
+function updateRowTotal(day) {
+  const d = data[currentKey].days[day] || {};
+  const total = RATES.reduce((s,r) => s + (d[r]||0)*r, 0);
+  const el = document.getElementById(`row-total-${day}`);
+  if (el) {
+    el.textContent = total || 0;
+    el.className = 'total-cell' + (total === 0 ? ' zero' : '');
+  }
+}
+
+function recalc() {
+  const d = data[currentKey];
+  const m = MONTHS[currentKey];
+  const days = getDaysInMonth(m.year, m.month);
+
+  let sums = {};
+  RATES.forEach(r => sums[r] = 0);
+  let mainTotal = 0;
+
+  for (let day = 1; day <= days; day++) {
+    const dd = d.days[day] || {};
+    RATES.forEach(r => {
+      sums[r] += dd[r]||0;
+      mainTotal += (dd[r]||0)*r;
+    });
+  }
+
+  RATES.forEach(r => {
+    document.getElementById('sum'+r).textContent = sums[r];
+  });
+
+  const extras = d.special.reduce((s,e) => s + (+e.value||0), 0);
+  const debt = +(document.getElementById('debtInput').value)||0;
+  const card = +(document.getElementById('cardInput').value)||0;
+  d.debt = debt; d.card = card;
+
+  const zaМisyats = mainTotal + extras;
+  const naRuky = zaМisyats - debt - card;
+  const totalUnits = RATES.reduce((s,r) => s + sums[r], 0);
+
+  document.getElementById('grandTotal').textContent = zaМisyats;
+  document.getElementById('totalMonth').textContent = zaМisyats.toLocaleString('uk') + ' ₴';
+  document.getElementById('totalExtras').textContent = extras.toLocaleString('uk') + ' ₴';
+  document.getElementById('debtDisplay').textContent = debt.toLocaleString('uk') + ' ₴';
+  document.getElementById('naRukyDisplay').textContent = naRuky.toLocaleString('uk') + ' ₴';
+  document.getElementById('naRukyBig').textContent = naRuky.toLocaleString('uk') + ' ₴';
+  document.getElementById('totalUnits').textContent = totalUnits + ' одиниць';
+
+  document.getElementById('debtInput').value = debt;
+  document.getElementById('cardInput').value = card;
+}
+
+function clearMonth() {
+  if (!confirm('Очистити всі дані за цей місяць?')) return;
+  data[currentKey] = { days:{}, special:[], debt:0, card:0 };
+  document.getElementById('debtInput').value = 0;
+  document.getElementById('cardInput').value = 0;
+  render();
+}
+
+function exportCSV() {
+  const m = MONTHS[currentKey];
+  const d = data[currentKey];
+  const days = getDaysInMonth(m.year, m.month);
+  let csv = 'Дата,50,Комент,100,Комент,150,Комент,200,Комент,250,Комент,Разом\n';
+  for (let day = 1; day <= days; day++) {
+    const dd = d.days[day]||{};
+    const dateStr = `${String(day).padStart(2,'0')}.${String(m.month).padStart(2,'0')}.${m.year}`;
+    const total = RATES.reduce((s,r)=>s+(dd[r]||0)*r,0);
+    const row = [dateStr, ...RATES.flatMap(r=>[dd[r]||'', dd['c'+r]||'']), total];
+    csv += row.map(v=>`"${v}"`).join(',') + '\n';
+  }
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `зарплатня_${currentKey}.csv`;
+  a.click();
+}
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+// Init
+initData();
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.documentElement.classList.add('light');
+  document.getElementById('themeBtn').textContent = '🌙';
+}
+render();
+</script>
+</body>
+</html>
