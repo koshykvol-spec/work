@@ -487,6 +487,7 @@
   <div class="header-left">
     <h1>Руслан ЦАЛЬ-ЦАЛЬКО</h1>
     <p id="subtitle">Облік зарплати</p>
+    <p id="saveStatus" style="font-size:0.72rem;margin-top:4px;font-family:var(--mono);color:var(--muted);min-height:1em;"></p>
   </div>
   <div class="month-selector">
     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">☀️</button>
@@ -590,6 +591,16 @@
 </div>
 
 <script>
+// =============================================
+// НАЛАШТУВАННЯ ХМАРНОГО СХОВИЩА (JSONBin.io)
+// 1. Зареєструйтесь на https://jsonbin.io
+// 2. Отримайте Master Key у профілі
+// 3. Вставте його нижче
+// =============================================
+const JSONBIN_MASTER_KEY = '$2a$10$gDK/9iGL81uYz7ojy1OgcuaExN9iPyogQzxhVb3N2N4w644cEPf8C';
+const JSONBIN_BIN_ID_KEY  = 'zarplt_bin_id'; // ключ у localStorage для зберігання ID бінки
+// =============================================
+
 const RATES = [50, 100, 150, 200, 250];
 const DAY_NAMES = ['нд','пн','вт','ср','чт','пт','сб'];
 
@@ -665,26 +676,128 @@ const SEED = {
 };
 
 let currentKey = '03-2026';
-let data = {}; // key -> { days: {dayNum: {50,c50,100,...}}, special:[], debt, card }
+let data = {};
+let _saveTimer = null;
+let _binId = localStorage.getItem(JSONBIN_BIN_ID_KEY) || null;
+let _saving = false;
 
-function initData() {
-  const saved = localStorage.getItem('zarplt');
-  if (saved) { data = JSON.parse(saved); }
-  // Fill from seed
+// --- Статус збереження ---
+function setStatus(msg, color) {
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+}
+
+// --- Заповнення дефолтними даними ---
+function fillDefaults() {
   for (const k in SEED) {
     if (!data[k]) data[k] = JSON.parse(JSON.stringify(SEED[k]));
   }
-  // Ensure all months exist
   for (const k in MONTHS) {
     if (!data[k]) data[k] = { days:{}, special:[], debt:0, card:0 };
   }
 }
 
+// --- Завантаження з JSONBin ---
+async function initData() {
+  setStatus('⏳ Завантаження...', 'var(--muted)');
+
+  if (!_binId) {
+    // Перша ініціалізація — створити нову бінку
+    fillDefaults();
+    await createBin();
+    return;
+  }
+
+  try {
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${_binId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    data = json.record || {};
+    fillDefaults();
+    setStatus('✓ Дані завантажено', 'var(--accent2)');
+    setTimeout(() => setStatus(''), 2000);
+  } catch (e) {
+    console.error('Помилка завантаження:', e);
+    setStatus('⚠ Не вдалось завантажити — офлайн-режим', 'var(--red)');
+    // Fallback до localStorage
+    const saved = localStorage.getItem('zarplt');
+    if (saved) { try { data = JSON.parse(saved); } catch(_) {} }
+    fillDefaults();
+  }
+
+  render();
+}
+
+// --- Створення нової бінки ---
+async function createBin() {
+  try {
+    const resp = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_MASTER_KEY,
+        'X-Bin-Name': 'zarplt',
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify(data)
+    });
+    const json = await resp.json();
+    if (!resp.ok) {
+      console.error('createBin error:', resp.status, JSON.stringify(json));
+      setStatus(`⚠ Помилка ${resp.status}: ${json.message || JSON.stringify(json)}`, 'var(--red)');
+      return;
+    }
+    _binId = json.metadata.id;
+    localStorage.setItem(JSONBIN_BIN_ID_KEY, _binId);
+    setStatus('✓ Сховище створено', 'var(--accent2)');
+    setTimeout(() => setStatus(''), 2000);
+  } catch (e) {
+    console.error('Помилка створення бінки:', e);
+    setStatus(`⚠ Помилка: ${e.message}`, 'var(--red)');
+  }
+  render();
+}
+
+// --- Збереження на сервер (з дебаунсом 1.5с) ---
+function autoSave() {
+  localStorage.setItem('zarplt', JSON.stringify(data)); // локальний backup
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(pushToCloud, 1500);
+  setStatus('✏ Зміни не збережені…', 'var(--accent)');
+}
+
+async function pushToCloud() {
+  if (_saving) return;
+  if (!_binId) { await createBin(); return; }
+  _saving = true;
+  setStatus('⏳ Збереження...', 'var(--muted)');
+  try {
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${_binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_MASTER_KEY
+      },
+      body: JSON.stringify(data)
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    setStatus('✓ Збережено', 'var(--accent2)');
+    setTimeout(() => setStatus(''), 2000);
+  } catch (e) {
+    console.error('Помилка збереження:', e);
+    setStatus('⚠ Не вдалось зберегти', 'var(--red)');
+  }
+  _saving = false;
+}
+
+// Стара кнопка тепер примусово зберігає одразу
 function saveData() {
-  localStorage.setItem('zarplt', JSON.stringify(data));
-  const btn = event.target;
-  btn.textContent = '✓ Збережено';
-  setTimeout(() => btn.textContent = '💾 Зберегти', 1500);
+  clearTimeout(_saveTimer);
+  pushToCloud();
 }
 
 function getDaysInMonth(year, month) {
@@ -711,6 +824,7 @@ function addMonth() {
   sel.value = val;
   currentKey = val;
   render();
+  autoSave();
 }
 
 function render() {
@@ -767,8 +881,8 @@ function renderSpecial() {
     const row = document.createElement('div');
     row.className = 'special-row';
     row.innerHTML = `
-      <input type="text" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:200px;outline:none;" value="${e.label}" oninput="data['${currentKey}'].special[${i}].label=this.value;recalc()">
-      <input type="number" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:110px;outline:none;" value="${e.value}" oninput="data['${currentKey}'].special[${i}].value=+this.value;recalc()">
+      <input type="text" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:200px;outline:none;" value="${e.label}" oninput="data['${currentKey}'].special[${i}].label=this.value;recalc();autoSave()">
+      <input type="number" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 10px;border-radius:6px;width:110px;outline:none;" value="${e.value}" oninput="data['${currentKey}'].special[${i}].value=+this.value;recalc();autoSave()">
       <button onclick="removeSpecial(${i})" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:5px;cursor:pointer;">✕</button>`;
     container.appendChild(row);
   });
@@ -778,12 +892,14 @@ function addSpecialEntry() {
   data[currentKey].special.push({label:'', value:0});
   renderSpecial();
   recalc();
+  autoSave();
 }
 
 function removeSpecial(i) {
   data[currentKey].special.splice(i,1);
   renderSpecial();
   recalc();
+  autoSave();
 }
 
 function onQty(el) {
@@ -793,6 +909,7 @@ function onQty(el) {
   data[currentKey].days[day][rate] = +el.value || 0;
   updateRowTotal(day);
   recalc();
+  autoSave();
 }
 
 function getAllComments() {
@@ -815,6 +932,7 @@ function onComment(el) {
   if (!data[currentKey].days[day]) data[currentKey].days[day] = {};
   data[currentKey].days[day][key] = el.value;
   filterSuggestions(el);
+  autoSave();
 }
 
 function filterSuggestions(el) {
@@ -894,7 +1012,12 @@ function recalc() {
   const extras = d.special.reduce((s,e) => s + (+e.value||0), 0);
   const debt = +(document.getElementById('debtInput').value)||0;
   const card = +(document.getElementById('cardInput').value)||0;
-  d.debt = debt; d.card = card;
+  if (d.debt !== debt || d.card !== card) {
+    d.debt = debt; d.card = card;
+    autoSave();
+  } else {
+    d.debt = debt; d.card = card;
+  }
 
   const zaМisyats = mainTotal + extras;
   const naRuky = zaМisyats - debt - card;
@@ -918,6 +1041,7 @@ function clearMonth() {
   document.getElementById('debtInput').value = 0;
   document.getElementById('cardInput').value = 0;
   render();
+  autoSave();
 }
 
 function exportCSV() {
@@ -952,7 +1076,6 @@ if (savedTheme === 'light') {
   document.documentElement.classList.add('light');
   document.getElementById('themeBtn').textContent = '🌙';
 }
-render();
 </script>
 </body>
 </html>
